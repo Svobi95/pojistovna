@@ -1,0 +1,10 @@
+#insertClient {
+	background-color: #f2f2f2;
+	border-radius: 0.5rem;
+}
+
+.avatar img {
+	max-height: 8rem;
+	border: 1px solid #bfc0c1;
+}
+footer{margin-top:3em;}
