@@ -2,9 +2,10 @@
 require('tridy/Database.php');
 require('tridy/ClientManager.php');
 $connection = Database::connectTo('localhost', 'root', '', 'insurance_db');
+$clientManager = new ClientManager();
+
 // odeslání formuláře
-$inserted = new ClientManager();
-$inserted->insertClient();
+$clientManager->insertClient();
 ?>
 <!DOCTYPE html>
 <html lang="cs">
@@ -17,7 +18,7 @@ $inserted->insertClient();
 	<script src="./assets/js/bootstrap.bundle.js"></script>
 	<title>PojištěníApp - home</title>
 	<style>
-		
+
 	</style>
 </head>
 
@@ -43,14 +44,19 @@ $inserted->insertClient();
 				</thead>
 				<tbody>
 					<?php
-					$lister = new ClientManager();
-					$lister->listAllClients();
+					$allClients = $clientManager->getAllClients();
+
+					foreach ($allClients as $client) {
+						echo '<tr>';
+						echo '<td>' . htmlspecialchars($client['client_id']) . '</td><td>' . htmlspecialchars($client['first_name']) . ' ' . htmlspecialchars($client['second_name']) . '</td> <td>' . htmlspecialchars($client['age']) . '</td><td>' . htmlspecialchars($client['phone']) . '</td>';
+						echo '</tr>';
+					}
 					?>
 				</tbody>
 			</table>
 		</section>
 		<!-- formulář zadání nového klienta -->
-		<section class="my-5" >
+		<section class="my-5">
 			<h3>Nový klient</h3>
 			<div class="d-flex gap-2 flex-wrap">
 				<div class="avatar"><img src="assets/img/avatar.svg" alt=""></div>
@@ -62,21 +68,17 @@ $inserted->insertClient();
 
 			</div>
 		</section>
-		
-		<section>
-			<?php
-			// výpis klientů
-			$listerClients = new ClientManager();
 
-			
-			?>
-			<span id="errorEmpty" style="color: red; display: none;">Vyplňte, prosím,  všechna pole!</span>
-				<span id="errorFormat" style="color: red; display: none;">Zadejte, prosím, telefon ve správném formátu!</span>
+		<!-- zobrazení chyby při odesílání formuláře -->
+		<section>
+
+			<span id="error"
+				style="color: red; display: <?= $clientManager->isInErrorState() === true ? 'block' : 'none'; ?>">Formulář
+				se nepodařilo odeslat.</span>
 		</section>
 	</main>
 	<footer>
 	</footer>
-	<script src="./assets/js/form_control.js"></script>
 </body>
 
 </html>

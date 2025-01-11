@@ -1,82 +1,77 @@
 <?php
-class clientManager{   
-    // VLOŽENÍ DO DATABÁZE:
+require('Client.php');
 
+class ClientManager
+{
     /**
-     * Method insertClient - vloží data z formuláře do databáze
-     *  podmínka zkontroluje, zda jsou všechna pole plná a jestli telefonní číslo je telefonní číslo 
-     *  nejspíš má být kontrola a vložení každý na jiném místě, ale to nevím jak udělat...
-     * 
-     *
-
-     * @return void
+     * Určuje, zda při odesílání formuláře došlo k chybě
+     * @var bool
      */
-    public function insertClient(){
-        if ($_POST) {
-            if (isset($_POST['first_name'])&& $_POST['first_name'] && isset($_POST['second_name'])&& $_POST['second_name']
-            && isset($_POST['age'])&& $_POST['age'] && isset($_POST['phone'])&& $_POST['phone'] && preg_match('/^\+420\s?\d{3}\s?\d{3}\s?\d{3}$/', $_POST['phone']))   { 
-            $first_name=$_POST['first_name'];
-            $second_name=$_POST['second_name'];
-            $age=$_POST['age'];
-            $phone=$_POST['phone'];
+    private bool $error;
 
-            Database::query('
-            INSERT INTO `client`
-            (`first_name`, `second_name`, `age`, `phone`)
-            VALUES (?, ?, ?, ?)
-        ', array($first_name, $second_name, $age, $phone));
-        // po odeslání se stránka přesměruje sama na sebe, aby se znovu neodesílala při refresh
-            header('Location:index.php');
-        } 
-        else echo '';
-        }
-
+    function __construct()
+    {
+        $this->error = false;
     }
 
-    // VÝBĚR Z DATABÁZE:
-
     /**
-     * @return [type]
+     * Provede dotaz do databáze na všechny klienty
+     * @return array
      */
-    private function selectAll(){
+    private function selectAll()
+    {
         $result = Database::query('
         SELECT *
         FROM `client`
         ');
         $data = $result->fetchAll();
-        return $data;   
+        return $data;
     }
 
-    // VÝPIS DO STRÁNKY
     /**
-     * Method listAllClients vypíše všechny klienty do tabulky
-     *
+     * Načte všechny klienty z databáze
+     * @return array
+     */
+    public function getAllClients(): array
+    {
+        return $this->selectAll();
+    }
+
+
+    /**
+     * Vloží data z formuláře do databáze zkontroluje, zda jsou všechna pole plná a jestli telefonní číslo je ve správném formátu
      * @return void
      */
-    public function listAllClients():void{
-       $clients= $this->selectAll();
+    public function insertClient()
+    {
+        $this->error = false;
+        if ($_POST) {
+            $first_name = $_POST['first_name'];
+            $second_name = $_POST['second_name'];
+            $age = $_POST['age'];
+            $phone = $_POST['phone'];
 
-       foreach($clients as $client){
-		echo '<tr>';
-		echo '<td>' . htmlspecialchars($client['client_id']) .'</td><td>' . htmlspecialchars($client['first_name']).' '.htmlspecialchars($client['second_name']). '</td> <td>'. htmlspecialchars($client['age']) . '</td><td>' . htmlspecialchars($client['phone']) .'</td>';
-		echo '</tr>';
-	}
+            $newClient = new Client($first_name, $second_name, $age, $phone);
+
+            // Pokud jsou data v pořádku, vytvoří se nový klient v databázi, pokud ne, zobrazí se error
+            if ($newClient->validate()) {
+                $newClient->insertToDb();
+
+                // po odeslání se stránka přesměruje sama na sebe, aby se znovu neodesílala při refresh
+                header('Location:index.php');
+            } else {
+                $this->error = true;
+            }
+        }
     }
 
-
-    // tady jsem se ještě snažil nachystat zformátování telefonního čísla aby mělo stejný tvar jako v zadání
-    // ale zatím vůbec nevím, jak to použít
-    function formatPhoneNumber($number) {
-		// odebere prázdné znaky
-		$cleanedNumber = preg_replace('/\s+/', '', $number); 
-		// mezi trojice znaků vloží mezeru
-		$formattedNumber = preg_replace('/(\+\d{3})(\d{3})(\d{3})(\d{3})/', '$1 $2 $3 $4', $cleanedNumber);
-		// zkrátí číslo na posledních 9 čísel
-		$cuttedNumber = substr($formattedNumber, -11);
-		
-		return $cuttedNumber;
-	}
-    
-
+    /**
+     * Vrací, zda při odesílání formuláře došlo k chybě
+     * @return bool
+     */
+    public function isInErrorState(): bool
+    {
+        return $this->error;
+    }
 }
 ?>

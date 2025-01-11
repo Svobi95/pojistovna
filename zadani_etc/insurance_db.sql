@@ -40,8 +40,8 @@ CREATE TABLE `client` (
 --
 
 INSERT INTO `client` (`client_id`, `first_name`, `second_name`, `age`, `phone`) VALUES
-(1, 'Pavel', 'Kratochvíl', 25, '607589258'),
-(2, 'Jan', 'Bobeš', 58, '147589236');
+(1, 'Pavel', 'Kratochvíl', 25, '607 589 258'),
+(2, 'Jan', 'Bobeš', 58, '147 589 236');
 
 --
 -- Indexy pro exportované tabulky
